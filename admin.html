@@ -196,7 +196,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0,1fr));
+      grid-template-columns: repeat(7, minmax(0,1fr));
       gap: 10px;
       margin: 22px 0 14px;
     }
@@ -356,6 +356,21 @@
     .status.reuniao-marcada { color: #ffe5a6; border-color: rgba(255,200,87,.34); background: rgba(255,200,87,.10); }
     .status.fechado { color: #c8ffd8; border-color: rgba(139,240,168,.40); background: rgba(139,240,168,.14); }
     .status.perdido { color: #ffd1d1; border-color: rgba(255,107,107,.36); background: rgba(255,107,107,.11); }
+
+    .hot-badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,200,87,.42);
+      background: rgba(255,200,87,.12);
+      color: #ffe5a6;
+    }
 
     .score-row {
       display: grid;
@@ -634,7 +649,7 @@
       <div class="eyebrow">CRM de diagnósticos</div>
       <h2>Respostas, scores, plano indicado e status comercial.</h2>
       <p>
-        Card principal limpo para leitura rápida. A edição de status e observação fica fechada até você precisar alterar.
+        Card principal limpo para leitura rápida. Use o filtro “Oportunidades quentes” para priorizar quem chamar primeiro.
       </p>
       <div class="notice" id="notice"></div>
     </section>
@@ -648,6 +663,7 @@
       <div class="stat"><strong id="whatsCount">0</strong><span>Chamados</span></div>
       <div class="stat"><strong id="reuniaoCount">0</strong><span>Reuniões</span></div>
       <div class="stat"><strong id="fechadoCount">0</strong><span>Fechados</span></div>
+      <div class="stat"><strong id="hotCount">0</strong><span>Quentes</span></div>
     </section>
 
     <section class="filters">
@@ -660,6 +676,7 @@
       </select>
       <select id="statusFilter" onchange="renderCards()">
         <option value="todos">Todos os status</option>
+        <option value="quentes">Oportunidades quentes</option>
         <option value="Novo lead">Novo lead</option>
         <option value="Em análise">Em análise</option>
         <option value="Chamado no WhatsApp">Chamado no WhatsApp</option>
@@ -747,6 +764,20 @@
       return "controle";
     }
 
+    function isHotLead(item) {
+      const status = getLeadStatus(item);
+      const openStatus = status === "Novo lead" || status === "Em análise" || status === "Chamado no WhatsApp";
+      const score = getScore(item);
+      const loss = getNormalized(item, "loss");
+      const planType = getPlanType(item);
+
+      return openStatus && (
+        score >= 60 ||
+        loss >= 70 ||
+        planType === "performance"
+      );
+    }
+
     function getScore(item) {
       return item?.scores?.total || 0;
     }
@@ -814,6 +845,7 @@
       document.getElementById("whatsCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Chamado no WhatsApp").length;
       document.getElementById("reuniaoCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Reunião marcada").length;
       document.getElementById("fechadoCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Fechado").length;
+      document.getElementById("hotCount").textContent = diagnostics.filter(item => isHotLead(item)).length;
     }
 
     function renderCards() {
@@ -849,11 +881,19 @@
         items = items.filter(item => getPlanType(item) === planFilter);
       }
 
-      if (statusFilter !== "todos") {
+      if (statusFilter === "quentes") {
+        items = items.filter(item => isHotLead(item));
+      } else if (statusFilter !== "todos") {
         items = items.filter(item => getLeadStatus(item) === statusFilter);
       }
 
-      if (sortFilter === "score") {
+      if (statusFilter === "quentes") {
+        items.sort((a,b) => {
+          const priorityA = getScore(a) + getNormalized(a, "loss");
+          const priorityB = getScore(b) + getNormalized(b, "loss");
+          return priorityB - priorityA;
+        });
+      } else if (sortFilter === "score") {
         items.sort((a,b) => getScore(b) - getScore(a));
       } else {
         items.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
@@ -878,6 +918,10 @@
           ? `<div class="note-preview">${escapeHtml(item.internal_notes)}</div>`
           : "";
 
+        const hotBadge = isHotLead(item)
+          ? `<span class="hot-badge">Oportunidade quente</span>`
+          : "";
+
         card.innerHTML = `
           <div class="card-head">
             <div>
@@ -887,6 +931,7 @@
               <div class="badge-stack">
                 <span class="status ${statusClass(status)}">${escapeHtml(status)}</span>
                 <span class="badge ${planType}">${escapeHtml(item.recommended_plan || "Sem plano")}</span>
+                ${hotBadge}
               </div>
             </div>
           </div>
@@ -1065,7 +1110,7 @@
     function copyDiagnosis(id) {
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
-      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\nPlano: ${item.recommended_plan || ""}\nScore: ${getScore(item)}/100\n\nDiagnóstico:\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
+      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\nPrioridade: ${isHotLead(item) ? "Oportunidade quente" : "Normal"}\nPlano: ${item.recommended_plan || ""}\nScore: ${getScore(item)}/100\n\nDiagnóstico:\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
       navigator.clipboard.writeText(text).then(() => showNotice("Diagnóstico copiado."));
     }
 
