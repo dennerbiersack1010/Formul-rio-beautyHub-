@@ -150,6 +150,12 @@
 
     .btn:hover { transform: translateY(-1px); }
 
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .btn-primary {
       color: #06100d;
       background: linear-gradient(135deg, var(--accent), #e8fff8);
@@ -842,7 +848,13 @@
     </form>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
+    const SUPABASE_URL = "https://xxkkclvucpvzanggpfnn.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wZpXTa0aQF-PVeWZYIX3tg_3u49uPo2";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const limits = {
       volume: 202,
       loss: 278,
@@ -996,19 +1008,53 @@ Frase para abordagem:
       };
     }
 
-    document.getElementById("formulario").addEventListener("submit", function(event) {
+    document.getElementById("formulario").addEventListener("submit", async function(event) {
       event.preventDefault();
 
+      const submitButton = document.querySelector('button[type="submit"]');
+      const originalText = submitButton.textContent;
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Enviando...";
+
       const payload = getDiagnosticPayload();
+      const answers = payload.answers || {};
 
-      // Por enquanto, salva apenas no navegador da pessoa.
-      // Na próxima etapa, este payload será enviado para o Supabase.
-      localStorage.setItem("beautyhub_last_diagnostic", JSON.stringify(payload));
+      const row = {
+        clinic_name: answers.clinic_name || null,
+        owner_name: answers.owner_name || null,
+        whatsapp: answers.whatsapp || null,
+        instagram: answers.instagram || null,
+        city: answers.city || null,
+        site: answers.site || null,
+        answers: payload.answers,
+        scores: payload.scores,
+        classification: payload.classification,
+        recommended_plan: payload.recommended_plan,
+        diagnosis: payload.diagnosis
+      };
 
-      document.getElementById("successMessage").style.display = "block";
-      document.getElementById("successMessage").scrollIntoView({ behavior: "smooth", block: "center" });
+      try {
+        const { error } = await supabaseClient
+          .from("beautyhub_diagnostics")
+          .insert([row]);
 
-      console.log("Diagnóstico interno BeautyHub:", payload);
+        if (error) {
+          console.error("Erro Supabase:", error);
+          alert("Não foi possível enviar agora. Verifique se a tabela beautyhub_diagnostics foi criada no Supabase.");
+          return;
+        }
+
+        document.getElementById("successMessage").style.display = "block";
+        document.getElementById("successMessage").scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById("formulario").reset();
+      } catch (err) {
+        console.error("Erro inesperado:", err);
+        alert("Erro inesperado ao enviar. Tente novamente.");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+      }
     });
   </script>
 </body>
