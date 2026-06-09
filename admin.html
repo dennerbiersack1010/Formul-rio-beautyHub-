@@ -243,7 +243,7 @@
     }
 
     textarea {
-      min-height: 110px;
+      min-height: 94px;
       resize: vertical;
       line-height: 1.45;
     }
@@ -282,8 +282,8 @@
 
     .clinic-name {
       margin: 0;
-      font-size: 23px;
-      letter-spacing: -0.05em;
+      font-size: 27px;
+      letter-spacing: -0.06em;
       line-height: 1.05;
     }
 
@@ -294,9 +294,17 @@
       word-break: break-word;
     }
 
+    .badge-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 13px 0 0;
+    }
+
     .badge {
       display: inline-flex;
       align-items: center;
+      width: fit-content;
       padding: 8px 10px;
       border-radius: 999px;
       border: 1px solid rgba(139,232,211,.28);
@@ -325,16 +333,15 @@
       display: inline-flex;
       align-items: center;
       width: fit-content;
-      padding: 7px 9px;
+      padding: 8px 10px;
       border-radius: 999px;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 950;
       letter-spacing: .08em;
       text-transform: uppercase;
       border: 1px solid rgba(255,255,255,.14);
       color: #fff;
       background: rgba(255,255,255,.07);
-      margin-top: 10px;
     }
 
     .status.novo-lead { color: #dffdf6; border-color: rgba(139,232,211,.32); background: rgba(139,232,211,.08); }
@@ -348,11 +355,11 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0,1fr));
       gap: 8px;
-      margin: 12px 0 14px;
+      margin: 16px 0 14px;
     }
 
     .score-box {
-      padding: 10px;
+      padding: 12px 10px;
       border: 1px solid rgba(255,255,255,.10);
       border-radius: 16px;
       background: rgba(255,255,255,.045);
@@ -360,7 +367,7 @@
 
     .score-box strong {
       display: block;
-      font-size: 20px;
+      font-size: 22px;
       letter-spacing: -0.06em;
     }
 
@@ -385,13 +392,40 @@
       border: 1px solid rgba(255,255,255,.08);
     }
 
-    .diagnosis-preview {
+    .client-summary {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 14px;
+      padding: 13px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      max-height: 64px;
-      overflow: hidden;
-      margin: 10px 0 14px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .summary-row strong {
+      color: var(--text);
+      text-align: right;
+      font-weight: 850;
+    }
+
+    .note-preview {
+      margin-top: 8px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: rgba(139,232,211,.055);
+      border: 1px solid rgba(139,232,211,.13);
+      color: #dffdf6;
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     .actions {
@@ -555,8 +589,8 @@
         display: grid;
       }
 
-      .badge {
-        width: fit-content;
+      .badge-stack {
+        margin-top: 12px;
       }
 
       .answer-row {
@@ -584,8 +618,7 @@
       <div class="eyebrow">CRM de diagnósticos</div>
       <h2>Respostas, scores, plano indicado e status comercial.</h2>
       <p>
-        Cada clínica vira um card de acompanhamento. Você vê o diagnóstico, muda o status,
-        salva observações internas e chama direto no WhatsApp.
+        Card principal limpo para acompanhamento. O diagnóstico completo fica dentro de “Ver diagnóstico”.
       </p>
       <div class="notice" id="notice"></div>
     </section>
@@ -817,7 +850,6 @@
         const planType = getPlanType(item);
         const status = getLeadStatus(item);
         const score = getScore(item);
-        const diagnosis = item.diagnosis || "Sem diagnóstico.";
         const card = document.createElement("article");
         card.className = "card";
 
@@ -826,15 +858,21 @@
           return `<option value="${escapeHtml(option)}" ${selected}>${escapeHtml(option)}</option>`;
         }).join("");
 
+        const notePreview = item.internal_notes
+          ? `<div class="note-preview">${escapeHtml(item.internal_notes)}</div>`
+          : "";
+
         card.innerHTML = `
           <div class="card-head">
             <div>
               <h3 class="clinic-name">${escapeHtml(item.clinic_name || "Clínica sem nome")}</h3>
               <div class="meta">${escapeHtml(item.owner_name || "Responsável não informado")} • ${escapeHtml(item.whatsapp || "Sem WhatsApp")}</div>
               <div class="meta">${escapeHtml(item.city || "")} ${item.instagram ? "• " + escapeHtml(item.instagram) : ""}</div>
-              <span class="status ${statusClass(status)}">${escapeHtml(status)}</span>
+              <div class="badge-stack">
+                <span class="status ${statusClass(status)}">${escapeHtml(status)}</span>
+                <span class="badge ${planType}">${escapeHtml(item.recommended_plan || "Sem plano")}</span>
+              </div>
             </div>
-            <span class="badge ${planType}">${escapeHtml(item.recommended_plan || "Sem plano")}</span>
           </div>
 
           <div class="score-row">
@@ -844,6 +882,13 @@
             <div class="score-box"><strong>${getNormalized(item, "capacity")}</strong><span>Invest.</span></div>
           </div>
 
+          <div class="client-summary">
+            <div class="summary-row"><span>Plano recomendado</span><strong>${escapeHtml(item.recommended_plan || "—")}</strong></div>
+            <div class="summary-row"><span>Score total</span><strong>${score}/100</strong></div>
+            <div class="summary-row"><span>Enviado em</span><strong>${formatDate(item.created_at)}</strong></div>
+            ${notePreview}
+          </div>
+
           <div class="card-update">
             <select id="status-${item.id}">
               ${statusOptionsHtml}
@@ -851,10 +896,6 @@
             <textarea id="notes-${item.id}" placeholder="Observação interna...">${escapeHtml(item.internal_notes || "")}</textarea>
             <button class="btn btn-primary" id="save-${item.id}" onclick="saveLead('${item.id}')">Salvar acompanhamento</button>
           </div>
-
-          <div class="diagnosis-preview">${escapeHtml(diagnosis)}</div>
-
-          <div class="meta">Enviado em ${formatDate(item.created_at)}</div>
 
           <div class="actions">
             <button class="btn btn-primary" onclick="openDetail('${item.id}')">Ver diagnóstico</button>
@@ -966,7 +1007,7 @@
     function copyDiagnosis(id) {
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
-      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\n${item.recommended_plan || ""}\n\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
+      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\nPlano: ${item.recommended_plan || ""}\nScore: ${getScore(item)}/100\n\nDiagnóstico:\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
       navigator.clipboard.writeText(text).then(() => showNotice("Diagnóstico copiado."));
     }
 
