@@ -381,17 +381,6 @@
       margin-top: 3px;
     }
 
-    .card-update {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      margin: 12px 0;
-      padding: 12px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
-    }
-
     .client-summary {
       display: grid;
       gap: 8px;
@@ -426,6 +415,27 @@
       color: #dffdf6;
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    .card-update {
+      display: none;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      animation: openEdit .18s ease;
+    }
+
+    .card-update.open {
+      display: grid;
+    }
+
+    @keyframes openEdit {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .actions {
@@ -618,7 +628,7 @@
       <div class="eyebrow">CRM de diagnósticos</div>
       <h2>Respostas, scores, plano indicado e status comercial.</h2>
       <p>
-        Card principal limpo para acompanhamento. O diagnóstico completo fica dentro de “Ver diagnóstico”.
+        Card principal limpo para leitura rápida. A edição de status e observação fica fechada até você precisar alterar.
       </p>
       <div class="notice" id="notice"></div>
     </section>
@@ -889,7 +899,7 @@
             ${notePreview}
           </div>
 
-          <div class="card-update">
+          <div class="card-update" id="edit-${item.id}">
             <select id="status-${item.id}">
               ${statusOptionsHtml}
             </select>
@@ -899,6 +909,7 @@
 
           <div class="actions">
             <button class="btn btn-primary" onclick="openDetail('${item.id}')">Ver diagnóstico</button>
+            <button class="btn btn-secondary" id="editBtn-${item.id}" onclick="toggleEdit('${item.id}')">Editar acompanhamento</button>
             <a class="btn btn-secondary" href="${whatsappLink(item.whatsapp)}" target="_blank">WhatsApp</a>
             <button class="btn btn-secondary" onclick="copyDiagnosis('${item.id}')">Copiar</button>
           </div>
@@ -906,6 +917,15 @@
 
         cards.appendChild(card);
       });
+    }
+
+    function toggleEdit(id) {
+      const box = document.getElementById("edit-" + id);
+      const btn = document.getElementById("editBtn-" + id);
+      if (!box || !btn) return;
+
+      const isOpen = box.classList.toggle("open");
+      btn.textContent = isOpen ? "Fechar edição" : "Editar acompanhamento";
     }
 
     async function saveLead(id) {
