@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BeautyHub — Respostas do Diagnóstico</title>
+  <title>BeautyHub — CRM de Diagnósticos</title>
   <style>
     :root {
       --bg: #07080b;
@@ -54,9 +54,7 @@
       z-index: 1;
     }
 
-    header {
-      padding: 28px 0 18px;
-    }
+    header { padding: 28px 0 18px; }
 
     .topbar {
       display: flex;
@@ -170,14 +168,12 @@
       line-height: 1.55;
     }
 
-    main {
-      padding: 0 0 58px;
-    }
+    main { padding: 0 0 58px; }
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 12px;
+      grid-template-columns: repeat(6, minmax(0,1fr));
+      gap: 10px;
       margin: 22px 0 14px;
     }
 
@@ -185,13 +181,13 @@
       border: 1px solid var(--border);
       border-radius: 20px;
       background: rgba(255,255,255,.055);
-      padding: 16px;
+      padding: 14px;
       box-shadow: 0 18px 60px rgba(0,0,0,.20);
     }
 
     .stat strong {
       display: block;
-      font-size: 30px;
+      font-size: 26px;
       letter-spacing: -0.06em;
       line-height: 1;
     }
@@ -200,7 +196,7 @@
       display: block;
       color: var(--muted);
       margin-top: 7px;
-      font-size: 12px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: .08em;
       font-weight: 850;
@@ -208,7 +204,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 1fr 190px 150px;
+      grid-template-columns: 1fr 180px 180px 150px;
       gap: 10px;
       padding: 14px;
       border-radius: 22px;
@@ -217,7 +213,7 @@
       margin-bottom: 16px;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       color: var(--text);
       background: rgba(255,255,255,.065);
@@ -228,7 +224,13 @@
       font: inherit;
     }
 
-    input:focus, select:focus {
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus, select:focus, textarea:focus {
       border-color: rgba(139,232,211,.55);
       background: rgba(255,255,255,.095);
     }
@@ -301,6 +303,29 @@
       color: #ffe5a6;
     }
 
+    .status {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 7px 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,.14);
+      color: #fff;
+      background: rgba(255,255,255,.07);
+      margin-top: 10px;
+    }
+
+    .status.novo-lead { color: #dffdf6; border-color: rgba(139,232,211,.32); background: rgba(139,232,211,.08); }
+    .status.em-analise { color: #e5eaff; border-color: rgba(138,168,255,.32); background: rgba(138,168,255,.10); }
+    .status.chamado-no-whatsapp { color: #e6fff0; border-color: rgba(139,240,168,.32); background: rgba(139,240,168,.10); }
+    .status.reuniao-marcada { color: #ffe5a6; border-color: rgba(255,200,87,.34); background: rgba(255,200,87,.10); }
+    .status.fechado { color: #c8ffd8; border-color: rgba(139,240,168,.40); background: rgba(139,240,168,.14); }
+    .status.perdido { color: #ffd1d1; border-color: rgba(255,107,107,.36); background: rgba(255,107,107,.11); }
+
     .score-row {
       display: grid;
       grid-template-columns: repeat(4, minmax(0,1fr));
@@ -329,6 +354,17 @@
       letter-spacing: .08em;
       font-weight: 850;
       margin-top: 3px;
+    }
+
+    .card-update {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
     }
 
     .diagnosis-preview {
@@ -460,11 +496,23 @@
       word-break: break-word;
     }
 
-    .answer-row span {
-      word-break: break-word;
+    .answer-row span { word-break: break-word; }
+
+    @media (max-width: 950px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .cards, .detail-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
-    @media (max-width: 850px) {
+    @media (max-width: 650px) {
       .wrap {
         width: min(100% - 22px, 1180px);
       }
@@ -475,10 +523,6 @@
 
       .topbar .btn {
         padding: 11px 12px;
-      }
-
-      .stats, .cards, .filters, .detail-grid {
-        grid-template-columns: 1fr;
       }
 
       .hero, .card, .modal-box {
@@ -511,19 +555,19 @@
       <div class="brand">
         <div class="logo">B</div>
         <div>
-          <h1>BeautyHub Admin</h1>
-          <p>Painel interno de respostas do diagnóstico</p>
+          <h1>BeautyHub CRM</h1>
+          <p>Painel interno de respostas e acompanhamento</p>
         </div>
       </div>
       <button class="btn btn-secondary" onclick="loadDiagnostics()">Atualizar</button>
     </div>
 
     <section class="hero">
-      <div class="eyebrow">Diagnósticos recebidos</div>
-      <h2>Veja as clínicas, scores e planos indicados.</h2>
+      <div class="eyebrow">CRM de diagnósticos</div>
+      <h2>Respostas, scores, plano indicado e status comercial.</h2>
       <p>
-        Esta página puxa as respostas diretamente do Supabase e organiza tudo em cards.
-        Aqui você vê o plano recomendado, score, diagnóstico e pode chamar a clínica no WhatsApp.
+        Agora cada clínica vira um card de acompanhamento. Você vê o diagnóstico, muda o status,
+        salva observações internas e chama direto no WhatsApp.
       </p>
     </section>
   </header>
@@ -531,9 +575,11 @@
   <main class="wrap">
     <section class="stats">
       <div class="stat"><strong id="totalCount">0</strong><span>Total</span></div>
-      <div class="stat"><strong id="controleCount">0</strong><span>Controle</span></div>
-      <div class="stat"><strong id="recuperacaoCount">0</strong><span>Recuperação</span></div>
-      <div class="stat"><strong id="eliteCount">0</strong><span>Elite</span></div>
+      <div class="stat"><strong id="novoCount">0</strong><span>Novo lead</span></div>
+      <div class="stat"><strong id="analiseCount">0</strong><span>Em análise</span></div>
+      <div class="stat"><strong id="whatsCount">0</strong><span>Chamados</span></div>
+      <div class="stat"><strong id="reuniaoCount">0</strong><span>Reuniões</span></div>
+      <div class="stat"><strong id="fechadoCount">0</strong><span>Fechados</span></div>
     </section>
 
     <section class="filters">
@@ -543,6 +589,15 @@
         <option value="controle">Controle</option>
         <option value="recuperacao">Recuperação</option>
         <option value="performance">Performance / Elite</option>
+      </select>
+      <select id="statusFilter" onchange="renderCards()">
+        <option value="todos">Todos os status</option>
+        <option value="Novo lead">Novo lead</option>
+        <option value="Em análise">Em análise</option>
+        <option value="Chamado no WhatsApp">Chamado no WhatsApp</option>
+        <option value="Reunião marcada">Reunião marcada</option>
+        <option value="Fechado">Fechado</option>
+        <option value="Perdido">Perdido</option>
       </select>
       <select id="sortFilter" onchange="renderCards()">
         <option value="recentes">Mais recentes</option>
@@ -584,6 +639,28 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let diagnostics = [];
+
+    const STATUS_OPTIONS = [
+      "Novo lead",
+      "Em análise",
+      "Chamado no WhatsApp",
+      "Reunião marcada",
+      "Fechado",
+      "Perdido"
+    ];
+
+    function getLeadStatus(item) {
+      return item.lead_status || "Novo lead";
+    }
+
+    function statusClass(status) {
+      return String(status || "Novo lead")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+    }
 
     function getPlanType(item) {
       const plan = (item.recommended_plan || "").toLowerCase();
@@ -643,7 +720,7 @@
 
       if (error) {
         console.error(error);
-        cards.innerHTML = `<div class="empty" style="display:block; grid-column:1/-1;">Erro ao carregar dados. Verifique a policy de SELECT no Supabase.</div>`;
+        cards.innerHTML = `<div class="empty" style="display:block; grid-column:1/-1;">Erro ao carregar dados. Verifique se você rodou o SQL de SELECT e UPDATE no Supabase.</div>`;
         return;
       }
 
@@ -651,16 +728,13 @@
       renderCards();
     }
 
-    function renderStats(items) {
-      const total = diagnostics.length;
-      const controle = diagnostics.filter(item => getPlanType(item) === "controle").length;
-      const recuperacao = diagnostics.filter(item => getPlanType(item) === "recuperacao").length;
-      const elite = diagnostics.filter(item => getPlanType(item) === "performance").length;
-
-      document.getElementById("totalCount").textContent = total;
-      document.getElementById("controleCount").textContent = controle;
-      document.getElementById("recuperacaoCount").textContent = recuperacao;
-      document.getElementById("eliteCount").textContent = elite;
+    function renderStats() {
+      document.getElementById("totalCount").textContent = diagnostics.length;
+      document.getElementById("novoCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Novo lead").length;
+      document.getElementById("analiseCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Em análise").length;
+      document.getElementById("whatsCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Chamado no WhatsApp").length;
+      document.getElementById("reuniaoCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Reunião marcada").length;
+      document.getElementById("fechadoCount").textContent = diagnostics.filter(item => getLeadStatus(item) === "Fechado").length;
     }
 
     function renderCards() {
@@ -668,6 +742,7 @@
 
       const query = document.getElementById("searchInput").value.toLowerCase().trim();
       const planFilter = document.getElementById("planFilter").value;
+      const statusFilter = document.getElementById("statusFilter").value;
       const sortFilter = document.getElementById("sortFilter").value;
       const cards = document.getElementById("cards");
       const empty = document.getElementById("emptyState");
@@ -683,7 +758,9 @@
             item.instagram,
             item.city,
             item.recommended_plan,
-            item.diagnosis
+            item.diagnosis,
+            item.internal_notes,
+            getLeadStatus(item)
           ].join(" ").toLowerCase();
           return text.includes(query);
         });
@@ -691,6 +768,10 @@
 
       if (planFilter !== "todos") {
         items = items.filter(item => getPlanType(item) === planFilter);
+      }
+
+      if (statusFilter !== "todos") {
+        items = items.filter(item => getLeadStatus(item) === statusFilter);
       }
 
       if (sortFilter === "score") {
@@ -704,10 +785,16 @@
 
       items.forEach(item => {
         const planType = getPlanType(item);
+        const status = getLeadStatus(item);
         const score = getScore(item);
         const diagnosis = item.diagnosis || "Sem diagnóstico.";
         const card = document.createElement("article");
         card.className = "card";
+
+        const statusOptionsHtml = STATUS_OPTIONS.map(option => {
+          const selected = option === status ? "selected" : "";
+          return `<option value="${escapeHtml(option)}" ${selected}>${escapeHtml(option)}</option>`;
+        }).join("");
 
         card.innerHTML = `
           <div class="card-head">
@@ -715,6 +802,7 @@
               <h3 class="clinic-name">${escapeHtml(item.clinic_name || "Clínica sem nome")}</h3>
               <div class="meta">${escapeHtml(item.owner_name || "Responsável não informado")} • ${escapeHtml(item.whatsapp || "Sem WhatsApp")}</div>
               <div class="meta">${escapeHtml(item.city || "")} ${item.instagram ? "• " + escapeHtml(item.instagram) : ""}</div>
+              <span class="status ${statusClass(status)}">${escapeHtml(status)}</span>
             </div>
             <span class="badge ${planType}">${escapeHtml(item.recommended_plan || "Sem plano")}</span>
           </div>
@@ -724,6 +812,14 @@
             <div class="score-box"><strong>${getNormalized(item, "volume")}</strong><span>Volume</span></div>
             <div class="score-box"><strong>${getNormalized(item, "loss")}</strong><span>Perda</span></div>
             <div class="score-box"><strong>${getNormalized(item, "capacity")}</strong><span>Invest.</span></div>
+          </div>
+
+          <div class="card-update">
+            <select id="status-${item.id}">
+              ${statusOptionsHtml}
+            </select>
+            <textarea id="notes-${item.id}" placeholder="Observação interna...">${escapeHtml(item.internal_notes || "")}</textarea>
+            <button class="btn btn-primary" onclick="saveLead('${item.id}')">Salvar acompanhamento</button>
           </div>
 
           <div class="diagnosis-preview">${escapeHtml(diagnosis)}</div>
@@ -741,21 +837,55 @@
       });
     }
 
+    async function saveLead(id) {
+      const status = document.getElementById("status-" + id).value;
+      const notes = document.getElementById("notes-" + id).value;
+
+      const { error } = await supabaseClient
+        .from("beautyhub_diagnostics")
+        .update({
+          lead_status: status,
+          internal_notes: notes,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.error(error);
+        alert("Erro ao salvar. Verifique se você rodou a policy de UPDATE no Supabase.");
+        return;
+      }
+
+      const item = diagnostics.find(entry => entry.id === id);
+      if (item) {
+        item.lead_status = status;
+        item.internal_notes = notes;
+        item.updated_at = new Date().toISOString();
+      }
+
+      renderCards();
+    }
+
     function openDetail(id) {
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
+
+      const status = getLeadStatus(item);
 
       document.getElementById("modalTitle").textContent = item.clinic_name || "Clínica sem nome";
       document.getElementById("modalSubtitle").textContent = `${item.owner_name || "Responsável não informado"} • ${formatDate(item.created_at)}`;
       document.getElementById("modalDiagnosis").textContent = item.diagnosis || "Sem diagnóstico.";
 
       document.getElementById("modalDetails").innerHTML = `
+        <div class="detail"><span>Status</span><strong>${escapeHtml(status)}</strong></div>
         <div class="detail"><span>Plano indicado</span><strong>${escapeHtml(item.recommended_plan || "—")}</strong></div>
         <div class="detail"><span>Score total</span><strong>${getScore(item)}/100</strong></div>
         <div class="detail"><span>WhatsApp</span><strong>${escapeHtml(item.whatsapp || "—")}</strong></div>
         <div class="detail"><span>Responsável</span><strong>${escapeHtml(item.owner_name || "—")}</strong></div>
         <div class="detail"><span>Instagram</span><strong>${escapeHtml(item.instagram || "—")}</strong></div>
         <div class="detail"><span>Cidade</span><strong>${escapeHtml(item.city || "—")}</strong></div>
+        <div class="detail"><span>Observação</span><strong>${escapeHtml(item.internal_notes || "—")}</strong></div>
+        <div class="detail"><span>Atualizado</span><strong>${formatDate(item.updated_at)}</strong></div>
       `;
 
       const answers = item.answers || {};
@@ -783,7 +913,7 @@
     function copyDiagnosis(id) {
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
-      const text = `${item.clinic_name || "Clínica"}\n${item.recommended_plan || ""}\n\n${item.diagnosis || ""}`;
+      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\n${item.recommended_plan || ""}\n\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
       navigator.clipboard.writeText(text).then(() => alert("Diagnóstico copiado."));
     }
 
