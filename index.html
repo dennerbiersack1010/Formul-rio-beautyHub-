@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BeautyHub — Diagnóstico Comercial da Clínica</title>
+  <style>
+    :root {
+      --bg: #07080b;
+      --bg-soft: #0d1017;
+      --card: rgba(255,255,255,.055);
+      --card-strong: rgba(255,255,255,.09);
+      --border: rgba(255,255,255,.12);
+      --text: #f5f7fb;
+      --muted: #a6adbb;
+      --muted-2: #747b8c;
+      --accent: #8be8d3;
+      --accent-2: #8aa8ff;
+      --danger: #ff6b6b;
+      --warning: #ffc857;
+      --success: #88f0a6;
+      --radius: 24px;
+      --shadow: 0 28px 80px rgba(0,0,0,.38);
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(139,232,211,.14), transparent 35%),
+        radial-gradient(circle at 90% 15%, rgba(138,168,255,.18), transparent 36%),
+        radial-gradient(circle at 70% 80%, rgba(255,200,87,.07), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+      z-index: 0;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 44px 0 22px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.22fr .78fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .hero-card, .score-card, .section, .result-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .hero-card {
+      padding: 34px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card:before {
+      content: "";
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      border-radius: 999px;
+      background: rgba(139,232,211,.12);
+      filter: blur(40px);
+      right: -160px;
+      top: -130px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(139,232,211,.28);
+      background: rgba(139,232,211,.08);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 76px);
+      line-height: .92;
+      letter-spacing: -0.07em;
+    }
+
+    .hero p {
+      margin: 18px 0 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      border: 0;
+      appearance: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-weight: 800;
+      font-size: 14px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      color: #06100d;
+      background: linear-gradient(135deg, var(--accent), #e8fff8);
+    }
+    .btn-secondary {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+    }
+    .btn-danger {
+      background: rgba(255,107,107,.12);
+      border: 1px solid rgba(255,107,107,.26);
+      color: #ffd7d7;
+    }
+
+    .score-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+    }
+
+    .score-label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-weight: 800;
+    }
+
+    .score-number {
+      font-size: 82px;
+      line-height: .9;
+      letter-spacing: -0.08em;
+      font-weight: 900;
+      margin: 18px 0 8px;
+    }
+
+    .score-result {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .meter {
+      width: 100%;
+      height: 11px;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 18px 0;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .meter > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--danger), var(--warning), var(--accent));
+      border-radius: 999px;
+      transition: width .35s ease;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .mini {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.09);
+    }
+
+    .mini strong {
+      display: block;
+      font-size: 22px;
+      letter-spacing: -0.05em;
+    }
+
+    .mini span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    main {
+      padding: 16px 0 60px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.045);
+      backdrop-filter: blur(16px);
+    }
+
+    .sidebar-title {
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .navlink {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .navlink:hover {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+    }
+
+    form {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section {
+      padding: 26px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      letter-spacing: -0.05em;
+      font-size: clamp(24px, 3.3vw, 38px);
+      line-height: 1;
+    }
+
+    .section-number {
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: .15em;
+    }
+
+    .hint {
+      color: var(--muted);
+      margin: 8px 0 0;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label.question {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 15px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="url"],
+    textarea,
+    select {
+      width: 100%;
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      padding: 14px 14px;
+      outline: none;
+      font: inherit;
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    textarea { min-height: 105px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(139,232,211,.55);
+      background: rgba(255,255,255,.09);
+    }
+
+    select option {
+      background: #11141b;
+      color: #fff;
+    }
+
+    .options {
+      display: grid;
+      gap: 9px;
+    }
+
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .option:hover {
+      transform: translateY(-1px);
+      border-color: rgba(139,232,211,.3);
+      background: rgba(139,232,211,.055);
+    }
+
+    .option input {
+      margin-top: 3px;
+      accent-color: #8be8d3;
+    }
+
+    .option span {
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .chip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .chip input {
+      position: absolute;
+      opacity: 0;
+      inset: 0;
+      cursor: pointer;
+    }
+
+    .chip span {
+      display: inline-flex;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,.045);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      transition: all .2s ease;
+    }
+
+    .chip input:checked + span {
+      background: rgba(139,232,211,.13);
+      border-color: rgba(139,232,211,.5);
+      color: var(--accent);
+    }
+
+    .result-panel {
+      padding: 28px;
+      position: sticky;
+      bottom: 18px;
+      z-index: 2;
+      margin-top: 18px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .result-box {
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(255,255,255,.045);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .result-box strong {
+      display: block;
+      font-size: 26px;
+      letter-spacing: -0.05em;
+    }
+
+    .result-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .diagnosis {
+      background: rgba(139,232,211,.08);
+      border: 1px solid rgba(139,232,211,.18);
+      border-radius: 20px;
+      padding: 18px;
+      margin-top: 14px;
+      white-space: pre-line;
+      color: #dffdf6;
+    }
+
+    .submit-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .footer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pill-plan {
+      display: inline-flex;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(138,168,255,.12);
+      border: 1px solid rgba(138,168,255,.24);
+      color: #dfe6ff;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .required {
+      color: var(--accent);
+    }
+
+    @media (max-width: 920px) {
+      .hero, .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .grid, .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .score-number {
+        font-size: 68px;
+      }
+
+      header {
+        padding-top: 26px;
+      }
+
+      .hero-card, .section, .score-card, .result-panel {
+        border-radius: 22px;
+      }
+
+      .hero-card, .section {
+        padding: 22px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #111;
+      }
+      .noise, .sidebar, .hero-actions, .footer-actions { display: none; }
+      .hero, .layout, .grid, .result-grid { display: block; }
+      .hero-card, .score-card, .section, .result-panel, .result-box, .diagnosis {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        background: #fff;
+        color: #111;
+        margin-bottom: 16px;
+      }
+      .hint, .option span, .mini span, .result-box span { color: #555; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <header class="wrap">
+    <div class="hero">
+      <section class="hero-card">
+        <div class="eyebrow">BeautyHub • Diagnóstico Comercial</div>
+        <h1>Descubra o plano certo para a clínica.</h1>
+        <p>
+          Formulário com pontuação automática para medir volume, perda de oportunidade,
+          maturidade comercial e capacidade de investimento. No final, ele recomenda o plano
+          mais coerente: Controle, Recuperação ou Performance.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#formulario">Preencher diagnóstico</a>
+          <button class="btn btn-secondary" type="button" onclick="scrollToResult()">Ver resultado</button>
+        </div>
+      </section>
+
+      <aside class="score-card">
+        <div>
+          <div class="score-label">BeautyHub Fit Score</div>
+          <div class="score-number" id="totalScore">0</div>
+          <div class="score-result" id="scoreStatus">Aguardando respostas</div>
+          <div class="meter"><span id="scoreMeter"></span></div>
+          <p class="hint" id="scoreHint">Conforme você responde, o diagnóstico é atualizado automaticamente.</p>
+        </div>
+        <div class="mini-grid">
+          <div class="mini"><strong id="volumeScore">0</strong><span>Volume</span></div>
+          <div class="mini"><strong id="lossScore">0</strong><span>Perda</span></div>
+          <div class="mini"><strong id="capacityScore">0</strong><span>Capacidade</span></div>
+          <div class="mini"><strong id="maturityScore">0</strong><span>Maturidade</span></div>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="layout">
+      <nav class="sidebar">
+        <div class="sidebar-title">Navegação</div>
+        <a class="navlink" href="#dados">01. Dados</a>
+        <a class="navlink" href="#estrutura">02. Estrutura</a>
+        <a class="navlink" href="#volume">03. Volume</a>
+        <a class="navlink" href="#leads">04. Leads</a>
+        <a class="navlink" href="#followup">05. Follow-up</a>
+        <a class="navlink" href="#retencao">06. Retenção</a>
+        <a class="navlink" href="#financeiro">07. Financeiro</a>
+        <a class="navlink" href="#problemas">08. Problemas</a>
+        <a class="navlink" href="#resultado">Resultado</a>
+      </nav>
+
+      <div>
+        <form id="formulario">
+          <section class="section" id="dados">
+            <div class="section-head">
+              <div>
+                <div class="section-number">01</div>
+                <h2>Dados da clínica</h2>
+                <p class="hint">Esses dados identificam quem respondeu e ajudam na abordagem comercial.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field">
+                <label class="question">Nome da clínica <span class="required">*</span></label>
+                <input type="text" name="clinic_name" placeholder="Ex: Clínica Bella Forma" required />
+              </div>
+              <div class="field">
+                <label class="question">Responsável <span class="required">*</span></label>
+                <input type="text" name="owner_name" placeholder="Nome da dona/responsável" required />
+              </div>
+              <div class="field">
+                <label class="question">WhatsApp comercial</label>
+                <input type="tel" name="whatsapp" placeholder="(00) 00000-0000" />
+              </div>
+              <div class="field">
+                <label class="question">Instagram</label>
+                <input type="text" name="instagram" placeholder="@clinica" />
+              </div>
+              <div class="field">
+                <label class="question">Cidade/Estado</label>
+                <input type="text" name="city" placeholder="Ex: Porto Alegre/RS" />
+              </div>
+              <div class="field">
+                <label class="question">Site, se tiver</label>
+                <input type="url" name="site" placeholder="https://..." />
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="estrutura">
+            <div class="section-head">
+              <div>
+                <div class="section-number">02</div>
+                <h2>Estrutura da operação</h2>
+                <p class="hint">Mede se a clínica tem equipe, rotina e necessidade de controle.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field score-field" data-category="maturity">
+                <label class="question">Quantas pessoas trabalham hoje na clínica?</label>
+                <select name="team_size" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="apenas_dona" data-points="5">Apenas a dona</option>
+                  <option value="2_3" data-points="10">2 a 3 pessoas</option>
+                  <option value="4_6" data-points="16">4 a 6 pessoas</option>
+                  <option value="7_10" data-points="22">7 a 10 pessoas</option>
+                  <option value="mais_10" data-points="28">Mais de 10 pessoas</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="maturity">
+                <label class="question">Existe recepção ou pessoa responsável por responder clientes?</label>
+                <select name="has_reception" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao" data-points="3">Não</option>
+                  <option value="dona" data-points="6">A própria dona responde tudo</option>
+                  <option value="as_vezes" data-points="10">Às vezes</option>
+                  <option value="sim" data-points="18">Sim</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="maturity">
+                <label class="question">Como organiza agenda, clientes e retornos?</label>
+                <select name="organization_tool" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sem_organizacao" data-points="18">Não tem organização clara</option>
+                  <option value="whatsapp" data-points="16">WhatsApp</option>
+                  <option value="papel" data-points="14">Agenda física/papel</option>
+                  <option value="planilha" data-points="12">Planilha</option>
+                  <option value="google_agenda" data-points="10">Google Agenda</option>
+                  <option value="sistema" data-points="8">Sistema/CRM</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="maturity">
+                <label class="question">Hoje a clínica usa algum sistema/CRM?</label>
+                <select name="uses_crm" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao" data-points="12">Não</option>
+                  <option value="sim_basico" data-points="14">Sim, mas é básico ou pouco usado</option>
+                  <option value="sim_bom" data-points="8">Sim, e funciona bem</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="volume">
+            <div class="section-head">
+              <div>
+                <div class="section-number">03</div>
+                <h2>Volume da clínica</h2>
+                <p class="hint">Quanto maior o volume, maior a chance de existir dinheiro perdido na operação.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field score-field" data-category="volume">
+                <label class="question">Atendimentos por mês</label>
+                <select name="monthly_appointments" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_30" data-points="5">Até 30</option>
+                  <option value="31_70" data-points="13">31 a 70</option>
+                  <option value="71_150" data-points="22">71 a 150</option>
+                  <option value="151_300" data-points="32">151 a 300</option>
+                  <option value="mais_300" data-points="40">Mais de 300</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="volume">
+                <label class="question">Clientes novas por mês</label>
+                <select name="new_clients_month" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_10" data-points="4">Até 10</option>
+                  <option value="11_30" data-points="10">11 a 30</option>
+                  <option value="31_60" data-points="18">31 a 60</option>
+                  <option value="61_100" data-points="26">61 a 100</option>
+                  <option value="mais_100" data-points="34">Mais de 100</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="volume">
+                <label class="question">Clientes ativas aproximadas</label>
+                <select name="active_clients" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_100" data-points="5">Até 100</option>
+                  <option value="101_300" data-points="12">101 a 300</option>
+                  <option value="301_700" data-points="20">301 a 700</option>
+                  <option value="701_1500" data-points="28">701 a 1.500</option>
+                  <option value="mais_1500" data-points="35">Mais de 1.500</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="volume">
+                <label class="question">Procedimentos recorrentes/retorno existem?</label>
+                <select name="recurring_procedures" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao" data-points="2">Não</option>
+                  <option value="alguns" data-points="12">Alguns procedimentos sim</option>
+                  <option value="sim" data-points="22">Sim</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="leads">
+            <div class="section-head">
+              <div>
+                <div class="section-number">04</div>
+                <h2>Leads e aquisição</h2>
+                <p class="hint">Aqui descobrimos se a clínica tem fluxo comercial suficiente para um plano avançado.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field score-field" data-category="volume">
+                <label class="question">Novos contatos/leads por mês</label>
+                <select name="monthly_leads" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_20" data-points="5">Até 20</option>
+                  <option value="21_50" data-points="14">21 a 50</option>
+                  <option value="51_100" data-points="25">51 a 100</option>
+                  <option value="101_300" data-points="36">101 a 300</option>
+                  <option value="mais_300" data-points="45">Mais de 300</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="capacity">
+                <label class="question">A clínica investe em anúncios?</label>
+                <select name="ads_investment" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao" data-points="2">Não</option>
+                  <option value="ja_parou" data-points="6">Já investiu, mas parou</option>
+                  <option value="ate_500" data-points="8">Até R$ 500/mês</option>
+                  <option value="501_1500" data-points="14">R$ 501 a R$ 1.500/mês</option>
+                  <option value="1501_3000" data-points="22">R$ 1.501 a R$ 3.000/mês</option>
+                  <option value="3001_7000" data-points="32">R$ 3.001 a R$ 7.000/mês</option>
+                  <option value="mais_7000" data-points="42">Mais de R$ 7.000/mês</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">A clínica sabe quais campanhas/posts/anúncios geram clientes?</label>
+                <select name="knows_campaign_results" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="4">Sim</option>
+                  <option value="parcial" data-points="12">Parcialmente</option>
+                  <option value="nao" data-points="22">Não</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">Registra de onde veio cada cliente?</label>
+                <select name="tracks_origin" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="4">Sim</option>
+                  <option value="as_vezes" data-points="14">Às vezes</option>
+                  <option value="nao" data-points="24">Não</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field" style="margin-top:16px;">
+              <label class="question">De onde vêm os leads? Marque todos.</label>
+              <div class="chips">
+                <label class="chip"><input type="checkbox" name="lead_sources" value="instagram_organico"><span>Instagram orgânico</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="instagram_ads"><span>Instagram Ads</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="facebook_ads"><span>Facebook Ads</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="google"><span>Google</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="indicacao"><span>Indicação</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="whatsapp"><span>WhatsApp</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="site"><span>Site</span></label>
+                <label class="chip"><input type="checkbox" name="lead_sources" value="parcerias"><span>Parcerias</span></label>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="followup">
+            <div class="section-head">
+              <div>
+                <div class="section-number">05</div>
+                <h2>Conversão e follow-up</h2>
+                <p class="hint">Esse bloco mede dinheiro parado em orçamentos, conversas e leads esquecidos.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field score-field" data-category="loss">
+                <label class="question">Quando alguém pede valor no WhatsApp, isso é registrado?</label>
+                <select name="quote_registered" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="4">Sim</option>
+                  <option value="so_whatsapp" data-points="18">Só fica no WhatsApp</option>
+                  <option value="nao" data-points="24">Não</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">Quando orçamento é enviado e a pessoa não responde, fazem follow-up?</label>
+                <select name="follow_up_frequency" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sempre" data-points="4">Sim, sempre</option>
+                  <option value="as_vezes" data-points="14">Às vezes</option>
+                  <option value="raramente" data-points="24">Raramente</option>
+                  <option value="nao" data-points="30">Não</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">Depois de quantos dias chamam uma lead que não respondeu?</label>
+                <select name="follow_up_days" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="mesmo_dia" data-points="3">No mesmo dia</option>
+                  <option value="1_dia" data-points="6">1 dia depois</option>
+                  <option value="2_3" data-points="10">2 a 3 dias depois</option>
+                  <option value="4_7" data-points="18">4 a 7 dias depois</option>
+                  <option value="sem_padrao" data-points="25">Não temos padrão</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">Sabem quantos orçamentos ficam sem resposta por mês?</label>
+                <select name="knows_unanswered_quotes" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="6">Sim</option>
+                  <option value="nao" data-points="22">Não</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="retencao">
+            <div class="section-head">
+              <div>
+                <div class="section-number">06</div>
+                <h2>Retornos e reativação</h2>
+                <p class="hint">Clínicas com recorrência e clientes esquecidas têm mais potencial de recuperação de receita.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field score-field" data-category="loss">
+                <label class="question">A clínica controla quando a cliente precisa retornar?</label>
+                <select name="controls_returns" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="4">Sim</option>
+                  <option value="parcial" data-points="14">Parcialmente</option>
+                  <option value="nao" data-points="28">Não</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">Clientes que deveriam retornar acabam sendo esquecidas?</label>
+                <select name="forgotten_returns" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao" data-points="3">Não</option>
+                  <option value="provavelmente" data-points="18">Provavelmente sim</option>
+                  <option value="sim" data-points="30">Sim</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">A clínica faz reativação de clientes antigas?</label>
+                <select name="reactivation" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="4">Sim</option>
+                  <option value="as_vezes" data-points="14">Às vezes</option>
+                  <option value="nao" data-points="26">Não</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="volume">
+                <label class="question">Clientes inativas aproximadas</label>
+                <select name="inactive_clients" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao_sei" data-points="18">Não sei</option>
+                  <option value="ate_50" data-points="8">Até 50</option>
+                  <option value="51_150" data-points="16">51 a 150</option>
+                  <option value="151_500" data-points="26">151 a 500</option>
+                  <option value="mais_500" data-points="36">Mais de 500</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="financeiro">
+            <div class="section-head">
+              <div>
+                <div class="section-number">07</div>
+                <h2>Faturamento e ticket</h2>
+                <p class="hint">Mede capacidade de pagar e potencial de retorno financeiro.</p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field score-field" data-category="capacity">
+                <label class="question">Ticket médio por atendimento</label>
+                <select name="average_ticket" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_150" data-points="4">Até R$ 150</option>
+                  <option value="151_300" data-points="9">R$ 151 a R$ 300</option>
+                  <option value="301_700" data-points="16">R$ 301 a R$ 700</option>
+                  <option value="701_1500" data-points="25">R$ 701 a R$ 1.500</option>
+                  <option value="mais_1500" data-points="34">Acima de R$ 1.500</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="capacity">
+                <label class="question">Faturamento mensal médio</label>
+                <select name="monthly_revenue" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_10" data-points="3">Até R$ 10.000</option>
+                  <option value="10_30" data-points="10">R$ 10.001 a R$ 30.000</option>
+                  <option value="30_70" data-points="20">R$ 30.001 a R$ 70.000</option>
+                  <option value="70_150" data-points="32">R$ 70.001 a R$ 150.000</option>
+                  <option value="mais_150" data-points="45">Acima de R$ 150.000</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="maturity">
+                <label class="question">A clínica tem meta mensal?</label>
+                <select name="has_goal" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao" data-points="4">Não</option>
+                  <option value="sim" data-points="12">Sim</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="maturity">
+                <label class="question">Sabe o valor previsto na agenda dos próximos 30 dias?</label>
+                <select name="knows_forecast" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="sim" data-points="4">Sim</option>
+                  <option value="mais_ou_menos" data-points="10">Mais ou menos</option>
+                  <option value="nao" data-points="18">Não</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="problemas">
+            <div class="section-head">
+              <div>
+                <div class="section-number">08</div>
+                <h2>Problemas principais</h2>
+                <p class="hint">Marque as dores. Cada uma aumenta o potencial de venda do BeautyHub.</p>
+              </div>
+            </div>
+
+            <div class="field score-field" data-category="loss">
+              <label class="question">Quais problemas existem hoje?</label>
+              <div class="chips" id="problemChips">
+                <label class="chip"><input type="checkbox" name="problems" value="leads_somem" data-problem-points="8"><span>Leads somem depois de pedir valor</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="orcamentos_sem_resposta" data-problem-points="8"><span>Orçamentos sem resposta</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="esquece_followup" data-problem-points="8"><span>Recepção esquece follow-up</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="clientes_antigas" data-problem-points="7"><span>Clientes antigas não são chamadas</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="retornos_esquecidos" data-problem-points="8"><span>Retornos esquecidos</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="nao_sabe_origem" data-problem-points="6"><span>Não sabe origem dos melhores clientes</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="campanha_sem_clareza" data-problem-points="6"><span>Não sabe qual campanha dá resultado</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="agenda_desorganizada" data-problem-points="5"><span>Agenda desorganizada</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="sem_previsao" data-problem-points="5"><span>Sem visão de faturamento previsto</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="whatsapp_espalhado" data-problem-points="7"><span>Tudo fica espalhado no WhatsApp</span></label>
+                <label class="chip"><input type="checkbox" name="problems" value="dona_cobra" data-problem-points="5"><span>Dona precisa cobrar a equipe</span></label>
+              </div>
+            </div>
+
+            <div class="grid" style="margin-top:16px;">
+              <div class="field score-field" data-category="capacity">
+                <label class="question">Faixa mensal que faria sentido investir</label>
+                <select name="investment_range" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="ate_197" data-points="2">Até R$ 197/mês</option>
+                  <option value="198_397" data-points="8">R$ 198 a R$ 397/mês</option>
+                  <option value="398_697" data-points="16">R$ 398 a R$ 697/mês</option>
+                  <option value="698_997" data-points="25">R$ 698 a R$ 997/mês</option>
+                  <option value="acima_997" data-points="35">Acima de R$ 997/mês se gerar retorno claro</option>
+                </select>
+              </div>
+
+              <div class="field score-field" data-category="loss">
+                <label class="question">Quanto acredita perder por falta de follow-up/retorno/organização?</label>
+                <select name="estimated_loss" data-score>
+                  <option value="" data-points="0">Selecione</option>
+                  <option value="nao_sei" data-points="12">Não sei</option>
+                  <option value="ate_1000" data-points="6">Até R$ 1.000/mês</option>
+                  <option value="1000_3000" data-points="14">R$ 1.000 a R$ 3.000/mês</option>
+                  <option value="3000_10000" data-points="25">R$ 3.000 a R$ 10.000/mês</option>
+                  <option value="mais_10000" data-points="38">Mais de R$ 10.000/mês</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field" style="margin-top:16px;">
+              <label class="question">Qual seria a principal coisa que você gostaria de resolver na operação?</label>
+              <textarea name="main_goal" placeholder="Escreva a principal dor da clínica hoje..."></textarea>
+            </div>
+          </section>
+        </form>
+
+        <section class="result-panel" id="resultado">
+          <div class="section-head">
+            <div>
+              <div class="section-number">RESULTADO</div>
+              <h2>Diagnóstico automático</h2>
+              <p class="hint">Use esse resultado para definir abordagem, plano e chamada para venda.</p>
+              <span class="pill-plan" id="recommendedPlan">Aguardando respostas</span>
+            </div>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-box"><strong id="resultTotal">0</strong><span>Score total</span></div>
+            <div class="result-box"><strong id="resultProfile">—</strong><span>Perfil</span></div>
+            <div class="result-box"><strong id="resultPlan">—</strong><span>Plano indicado</span></div>
+          </div>
+
+          <div class="diagnosis" id="diagnosisText">Preencha o formulário para gerar a recomendação.</div>
+
+          <div class="footer-actions">
+            <button class="btn btn-primary" type="button" onclick="copyDiagnosis()">Copiar diagnóstico</button>
+            <button class="btn btn-secondary" type="button" onclick="downloadJSON()">Baixar respostas em JSON</button>
+            <button class="btn btn-secondary" type="button" onclick="window.print()">Salvar/Imprimir PDF</button>
+            <button class="btn btn-danger" type="button" onclick="resetForm()">Limpar formulário</button>
+          </div>
+
+          <p class="submit-note">
+            Este arquivo calcula o diagnóstico no próprio navegador. Para salvar respostas online, conecte este formulário ao Supabase, Google Sheets ou outro backend.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const limits = {
+      volume: 202,
+      loss: 278,
+      capacity: 156,
+      maturity: 128
+    };
+
+    const labels = {
+      controle: "BeautyHub Controle",
+      recuperacao: "BeautyHub Recuperação",
+      performance: "BeautyHub Performance / Elite"
+    };
+
+    function normalize(score, max) {
+      return Math.min(100, Math.round((score / max) * 100));
+    }
+
+    function getFormData() {
+      const form = document.getElementById("formulario");
+      const data = {};
+      const fd = new FormData(form);
+
+      for (const [key, value] of fd.entries()) {
+        if (data[key]) {
+          if (!Array.isArray(data[key])) data[key] = [data[key]];
+          data[key].push(value);
+        } else {
+          data[key] = value;
+        }
+      }
+
+      data.problems = Array.from(document.querySelectorAll('input[name="problems"]:checked')).map(el => el.value);
+      data.lead_sources = Array.from(document.querySelectorAll('input[name="lead_sources"]:checked')).map(el => el.value);
+      return data;
+    }
+
+    function calculateScores() {
+      const raw = { volume: 0, loss: 0, capacity: 0, maturity: 0 };
+
+      document.querySelectorAll("[data-score]").forEach(el => {
+        const selected = el.options ? el.options[el.selectedIndex] : null;
+        const points = selected ? Number(selected.dataset.points || 0) : 0;
+        const wrapper = el.closest(".score-field");
+        const category = wrapper ? wrapper.dataset.category : null;
+        if (category && raw[category] !== undefined) raw[category] += points;
+      });
+
+      document.querySelectorAll('input[name="problems"]:checked').forEach(el => {
+        raw.loss += Number(el.dataset.problemPoints || 0);
+      });
+
+      const normalized = {
+        volume: normalize(raw.volume, limits.volume),
+        loss: normalize(raw.loss, limits.loss),
+        capacity: normalize(raw.capacity, limits.capacity),
+        maturity: normalize(raw.maturity, limits.maturity)
+      };
+
+      const total = Math.round(
+        normalized.volume * 0.28 +
+        normalized.loss * 0.34 +
+        normalized.capacity * 0.24 +
+        normalized.maturity * 0.14
+      );
+
+      return { raw, normalized, total };
+    }
+
+    function classify(scores) {
+      const { volume, loss, capacity, maturity } = scores.normalized;
+      const total = scores.total;
+
+      let plan = "controle";
+      let profile = "Inicial";
+      let status = "Baixa prioridade comercial";
+
+      if (total >= 70 && volume >= 55 && capacity >= 45) {
+        plan = "performance";
+        profile = "Alta maturidade";
+        status = "Alta oportunidade";
+      } else if (total >= 45 && loss >= 45 && volume >= 35) {
+        plan = "recuperacao";
+        profile = "Volume médio";
+        status = "Boa oportunidade";
+      } else {
+        plan = "controle";
+        profile = "Baixo volume ou baixa maturidade";
+        status = "Organização básica";
+      }
+
+      if (capacity < 25 && total < 60) {
+        plan = "controle";
+        profile = "Baixa capacidade de investimento";
+        status = "Vender com cautela";
+      }
+
+      return { plan, profile, status };
+    }
+
+    function buildDiagnosis(scores, classification) {
+      const data = getFormData();
+      const planName = labels[classification.plan];
+
+      let mainPain = "organização da operação";
+      if (scores.normalized.loss >= 65) mainPain = "perda de oportunidades comerciais";
+      if (data.problems && data.problems.includes("retornos_esquecidos")) mainPain = "retornos esquecidos e clientes que não voltam";
+      if (data.problems && data.problems.includes("orcamentos_sem_resposta")) mainPain = "orçamentos sem resposta e follow-up fraco";
+      if (data.problems && data.problems.includes("campanha_sem_clareza")) mainPain = "falta de clareza sobre campanhas e origem das vendas";
+
+      let approach = "";
+      if (classification.plan === "controle") {
+        approach = "Abordagem recomendada: vender organização, agenda, clientes, procedimentos e retornos. Evite prometer uma estrutura avançada antes de comprovar volume comercial suficiente.";
+      }
+
+      if (classification.plan === "recuperacao") {
+        approach = "Abordagem recomendada: vender recuperação de receita. Mostre que existem leads, retornos, orçamentos e clientes inativas que podem virar dinheiro se forem acompanhados corretamente.";
+      }
+
+      if (classification.plan === "performance") {
+        approach = "Abordagem recomendada: vender central comercial avançada. Fale de controle de conversão, origem dos leads, oportunidades, alertas, IA assistida, dashboard executivo e previsibilidade.";
+      }
+
+      const warning = scores.normalized.capacity < 30
+        ? "\n\nAtenção: a capacidade de investimento indicada é baixa. Use uma oferta mais enxuta ou aumente o setup e reduza promessas de manutenção mensal."
+        : "";
+
+      return `Plano recomendado: ${planName}
+
+Perfil da clínica: ${classification.profile}
+Score total: ${scores.total}/100
+
+Leitura principal:
+A clínica demonstra maior necessidade em: ${mainPain}.
+
+Pontuação por área:
+- Volume: ${scores.normalized.volume}/100
+- Perda de oportunidade: ${scores.normalized.loss}/100
+- Capacidade de investimento: ${scores.normalized.capacity}/100
+- Maturidade operacional: ${scores.normalized.maturity}/100
+
+${approach}
+
+Frase para chamar para venda:
+"Analisei suas respostas e vi que hoje existe espaço para melhorar a forma como a clínica acompanha leads, retornos e oportunidades. O ponto principal não é ter mais um aplicativo; é enxergar onde existe dinheiro parado e criar uma rotina simples para recuperar essas oportunidades."${warning}`;
+    }
+
+    function updateUI() {
+      const scores = calculateScores();
+      const classification = classify(scores);
+      const diagnosis = buildDiagnosis(scores, classification);
+
+      document.getElementById("totalScore").textContent = scores.total;
+      document.getElementById("scoreMeter").style.width = scores.total + "%";
+      document.getElementById("scoreStatus").textContent = classification.status;
+      document.getElementById("scoreHint").textContent = labels[classification.plan];
+
+      document.getElementById("volumeScore").textContent = scores.normalized.volume;
+      document.getElementById("lossScore").textContent = scores.normalized.loss;
+      document.getElementById("capacityScore").textContent = scores.normalized.capacity;
+      document.getElementById("maturityScore").textContent = scores.normalized.maturity;
+
+      document.getElementById("resultTotal").textContent = scores.total;
+      document.getElementById("resultProfile").textContent = classification.profile;
+      document.getElementById("resultPlan").textContent = classification.plan === "performance" ? "Elite" : classification.plan === "recuperacao" ? "Recuperação" : "Controle";
+      document.getElementById("recommendedPlan").textContent = labels[classification.plan];
+      document.getElementById("diagnosisText").textContent = diagnosis;
+
+      return { scores, classification, diagnosis, data: getFormData() };
+    }
+
+    function copyDiagnosis() {
+      const current = updateUI();
+      navigator.clipboard.writeText(current.diagnosis).then(() => {
+        alert("Diagnóstico copiado.");
+      }).catch(() => {
+        alert("Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.");
+      });
+    }
+
+    function downloadJSON() {
+      const current = updateUI();
+      const payload = {
+        created_at: new Date().toISOString(),
+        data: current.data,
+        scores: current.scores,
+        classification: current.classification,
+        diagnosis: current.diagnosis
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const clinic = (current.data.clinic_name || "clinica").toString().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      a.href = url;
+      a.download = `diagnostico-beautyhub-${clinic || "clinica"}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetForm() {
+      if (!confirm("Limpar todas as respostas?")) return;
+      document.getElementById("formulario").reset();
+      updateUI();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function scrollToResult() {
+      document.getElementById("resultado").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.addEventListener("input", updateUI);
+    document.addEventListener("change", updateUI);
+    updateUI();
+  </script>
+</body>
+</html>
