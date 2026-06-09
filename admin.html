@@ -170,6 +170,24 @@
 
     main { padding: 0 0 58px; }
 
+    .notice {
+      display: none;
+      margin: 16px 0 0;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(139,232,211,.24);
+      background: rgba(139,232,211,.08);
+      color: #dffdf6;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .notice.error {
+      border-color: rgba(255,107,107,.35);
+      background: rgba(255,107,107,.10);
+      color: #ffd1d1;
+    }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(6, minmax(0,1fr));
@@ -566,9 +584,10 @@
       <div class="eyebrow">CRM de diagnósticos</div>
       <h2>Respostas, scores, plano indicado e status comercial.</h2>
       <p>
-        Agora cada clínica vira um card de acompanhamento. Você vê o diagnóstico, muda o status,
+        Cada clínica vira um card de acompanhamento. Você vê o diagnóstico, muda o status,
         salva observações internas e chama direto no WhatsApp.
       </p>
+      <div class="notice" id="notice"></div>
     </section>
   </header>
 
@@ -649,6 +668,16 @@
       "Perdido"
     ];
 
+    function showNotice(message, type = "success") {
+      const notice = document.getElementById("notice");
+      notice.className = "notice" + (type === "error" ? " error" : "");
+      notice.textContent = message;
+      notice.style.display = "block";
+      setTimeout(() => {
+        notice.style.display = "none";
+      }, 6000);
+    }
+
     function getLeadStatus(item) {
       return item.lead_status || "Novo lead";
     }
@@ -720,7 +749,8 @@
 
       if (error) {
         console.error(error);
-        cards.innerHTML = `<div class="empty" style="display:block; grid-column:1/-1;">Erro ao carregar dados. Verifique se você rodou o SQL de SELECT e UPDATE no Supabase.</div>`;
+        cards.innerHTML = `<div class="empty" style="display:block; grid-column:1/-1;">Erro ao carregar dados: ${escapeHtml(error.message || "Erro desconhecido")}</div>`;
+        showNotice("Erro ao carregar dados: " + (error.message || "Erro desconhecido"), "error");
         return;
       }
 
@@ -819,7 +849,7 @@
               ${statusOptionsHtml}
             </select>
             <textarea id="notes-${item.id}" placeholder="Observação interna...">${escapeHtml(item.internal_notes || "")}</textarea>
-            <button class="btn btn-primary" onclick="saveLead('${item.id}')">Salvar acompanhamento</button>
+            <button class="btn btn-primary" id="save-${item.id}" onclick="saveLead('${item.id}')">Salvar acompanhamento</button>
           </div>
 
           <div class="diagnosis-preview">${escapeHtml(diagnosis)}</div>
@@ -838,32 +868,55 @@
     }
 
     async function saveLead(id) {
-      const status = document.getElementById("status-" + id).value;
-      const notes = document.getElementById("notes-" + id).value;
+      const statusInput = document.getElementById("status-" + id);
+      const notesInput = document.getElementById("notes-" + id);
+      const button = document.getElementById("save-" + id);
 
-      const { error } = await supabaseClient
+      if (!statusInput || !notesInput || !button) {
+        showNotice("Erro interno: campos não encontrados para salvar.", "error");
+        return;
+      }
+
+      const status = statusInput.value;
+      const notes = notesInput.value;
+
+      button.disabled = true;
+      button.textContent = "Salvando...";
+
+      const { data, error } = await supabaseClient
         .from("beautyhub_diagnostics")
         .update({
           lead_status: status,
           internal_notes: notes,
           updated_at: new Date().toISOString()
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id, lead_status, internal_notes, updated_at")
+        .single();
+
+      button.disabled = false;
+      button.textContent = "Salvar acompanhamento";
 
       if (error) {
         console.error(error);
-        alert("Erro ao salvar. Verifique se você rodou a policy de UPDATE no Supabase.");
+        showNotice("Erro ao salvar: " + (error.message || "Erro desconhecido"), "error");
+        return;
+      }
+
+      if (!data) {
+        showNotice("Nada foi salvo. O registro não foi encontrado pelo ID.", "error");
         return;
       }
 
       const item = diagnostics.find(entry => entry.id === id);
       if (item) {
-        item.lead_status = status;
-        item.internal_notes = notes;
-        item.updated_at = new Date().toISOString();
+        item.lead_status = data.lead_status;
+        item.internal_notes = data.internal_notes;
+        item.updated_at = data.updated_at;
       }
 
-      renderCards();
+      showNotice("Acompanhamento salvo com sucesso.");
+      await loadDiagnostics();
     }
 
     function openDetail(id) {
@@ -914,7 +967,7 @@
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
       const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\n${item.recommended_plan || ""}\n\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
-      navigator.clipboard.writeText(text).then(() => alert("Diagnóstico copiado."));
+      navigator.clipboard.writeText(text).then(() => showNotice("Diagnóstico copiado."));
     }
 
     loadDiagnostics();
