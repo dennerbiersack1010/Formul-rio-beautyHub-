@@ -1036,17 +1036,24 @@
       if (!item) return;
 
       const name = item.clinic_name || "este lead";
-      const confirmed = confirm("Tem certeza que deseja deletar o lead: " + name + "? Essa ação remove o registro do painel.");
+      const confirmed = confirm("Tem certeza que deseja deletar o lead: " + name + "? Essa ação remove o registro do banco de dados.");
       if (!confirmed) return;
 
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from("beautyhub_diagnostics")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
 
       if (error) {
         console.error(error);
         showNotice("Erro ao deletar: " + (error.message || "Erro desconhecido"), "error");
+        return;
+      }
+
+      if (!data) {
+        showNotice("O lead não foi deletado no Supabase. Verifique a policy de DELETE.", "error");
         return;
       }
 
