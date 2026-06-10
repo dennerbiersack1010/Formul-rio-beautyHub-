@@ -625,7 +625,7 @@
         </p>
 
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#diagnostico">Iniciar diagnóstico</a>
+          <a class="btn btn-primary" href="#formulario-diagnostico">Iniciar diagnóstico</a>
           <a class="btn btn-secondary" href="#como-funciona">Como funciona</a>
         </div>
       </div>
@@ -654,7 +654,7 @@
     </section>
   </header>
 
-  <main class="wrap" id="diagnostico">
+  <main class="wrap" id="formulario-diagnostico">
     <div class="section-title">
       <div class="pill">Preencha com atenção</div>
       <h2>Diagnóstico BeautyHub</h2>
@@ -911,16 +911,34 @@
       history.scrollRestoration = "manual";
     }
 
+    function forceTop() {
+      if (window.location.hash) {
+        history.replaceState(null, document.title, window.location.pathname + window.location.search);
+      }
+
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+
+    forceTop();
+
+    window.addEventListener("DOMContentLoaded", function() {
+      forceTop();
+      setTimeout(forceTop, 50);
+      setTimeout(forceTop, 250);
+      setTimeout(forceTop, 800);
+    });
+
     window.addEventListener("load", function() {
-      setTimeout(function() {
-        window.scrollTo(0, 0);
-      }, 0);
+      forceTop();
+      setTimeout(forceTop, 100);
+      setTimeout(forceTop, 500);
     });
 
     window.addEventListener("pageshow", function() {
-      setTimeout(function() {
-        window.scrollTo(0, 0);
-      }, 0);
+      forceTop();
+      setTimeout(forceTop, 100);
     });
 
     const SUPABASE_URL = "https://xxkkclvucpvzanggpfnn.supabase.co";
@@ -1285,4 +1303,3 @@
   </script>
 </body>
 </html>
- 
