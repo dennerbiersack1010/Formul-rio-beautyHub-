@@ -662,6 +662,28 @@
       font-size: 14px;
     }
 
+    .message-box {
+      width: 100%;
+      min-height: 260px;
+      white-space: pre-wrap;
+      color: #f6f7fb;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 20px;
+      padding: 16px;
+      line-height: 1.55;
+      font-family: var(--font);
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .message-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
     .answers {
       display: grid;
       gap: 8px;
@@ -839,6 +861,25 @@
 
       <h3 style="letter-spacing:-.04em;">Respostas</h3>
       <div class="answers" id="modalAnswers"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="messageModal" onclick="closeMessageModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div>
+          <h3>Mensagem pronta</h3>
+          <div class="meta" id="messageSubtitle">Copie e envie no WhatsApp</div>
+        </div>
+        <button class="btn btn-secondary" onclick="hideMessageModal()">Fechar</button>
+      </div>
+
+      <textarea class="message-box" id="readyMessageText"></textarea>
+
+      <div class="message-actions">
+        <button class="btn btn-primary" onclick="copyMessageFromModal()">Copiar mensagem</button>
+        <a class="btn btn-secondary" id="openWhatsappWithMessage" href="#" target="_blank">Abrir WhatsApp</a>
+      </div>
     </div>
   </div>
 
@@ -1322,16 +1363,61 @@
       return `Olá, ${owner}. Tudo bem?\n\nAnalisei as respostas da ${clinic} no diagnóstico BeautyHub.\n\nCom base nas respostas, o plano indicado foi ${plan}. A ideia é organizar melhor o acompanhamento dos contatos, entender onde existem oportunidades paradas e criar um processo mais claro para transformar interesse em atendimento.\n\nPosso te mostrar o diagnóstico e o próximo passo mais indicado para a clínica?`;
     }
 
+    let currentReadyMessage = "";
+
     function copyReadyMessage(id) {
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
 
       const message = buildReadyMessage(item);
+      currentReadyMessage = message;
 
-      navigator.clipboard.writeText(message).then(() => {
-        showNotice("Mensagem pronta copiada para WhatsApp.");
+      const textArea = document.getElementById("readyMessageText");
+      const subtitle = document.getElementById("messageSubtitle");
+      const whatsappButton = document.getElementById("openWhatsappWithMessage");
+
+      if (textArea) textArea.value = message;
+      if (subtitle) subtitle.textContent = item.clinic_name || "Mensagem pronta";
+      if (whatsappButton) {
+        const cleaned = cleanPhone(item.whatsapp);
+        const finalPhone = cleaned ? (cleaned.startsWith("55") ? cleaned : "55" + cleaned) : "";
+        const encoded = encodeURIComponent(message);
+        whatsappButton.href = finalPhone ? `https://wa.me/${finalPhone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+      }
+
+      document.getElementById("messageModal").classList.add("open");
+    }
+
+    function hideMessageModal() {
+      document.getElementById("messageModal").classList.remove("open");
+    }
+
+    function closeMessageModal(event) {
+      if (event.target.id === "messageModal") hideMessageModal();
+    }
+
+    function copyMessageFromModal() {
+      const textArea = document.getElementById("readyMessageText");
+      if (!textArea) return;
+
+      textArea.focus();
+      textArea.select();
+      textArea.setSelectionRange(0, 99999);
+
+      try {
+        const ok = document.execCommand("copy");
+        if (ok) {
+          showNotice("Mensagem copiada.");
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      navigator.clipboard.writeText(textArea.value).then(() => {
+        showNotice("Mensagem copiada.");
       }).catch(() => {
-        showNotice("Não consegui copiar automaticamente. Abra o diagnóstico e copie manualmente.", "error");
+        showNotice("Não consegui copiar automaticamente. Selecione o texto e copie manualmente.", "error");
       });
     }
 
