@@ -874,7 +874,7 @@
         <button class="btn btn-secondary" onclick="hideMessageModal()">Fechar</button>
       </div>
 
-      <textarea class="message-box" id="readyMessageText"></textarea>
+      <textarea class="message-box" id="readyMessageText" readonly></textarea>
 
       <div class="message-actions">
         <button class="btn btn-primary" onclick="copyMessageFromModal()">Copiar mensagem</button>
@@ -1396,29 +1396,49 @@
       if (event.target.id === "messageModal") hideMessageModal();
     }
 
-    function copyMessageFromModal() {
+    async function copyMessageFromModal() {
       const textArea = document.getElementById("readyMessageText");
       if (!textArea) return;
 
-      textArea.focus();
-      textArea.select();
-      textArea.setSelectionRange(0, 99999);
+      const message = textArea.value || currentReadyMessage || "";
+
+      if (!message.trim()) {
+        showNotice("Nenhuma mensagem encontrada para copiar.", "error");
+        return;
+      }
 
       try {
-        const ok = document.execCommand("copy");
-        if (ok) {
-          showNotice("Mensagem copiada.");
-          return;
-        }
+        await navigator.clipboard.writeText(message);
+        showNotice("Mensagem copiada automaticamente.");
+        return;
       } catch (error) {
         console.error(error);
       }
 
-      navigator.clipboard.writeText(textArea.value).then(() => {
-        showNotice("Mensagem copiada.");
-      }).catch(() => {
-        showNotice("Não consegui copiar automaticamente. Selecione o texto e copie manualmente.", "error");
-      });
+      try {
+        const temporary = document.createElement("textarea");
+        temporary.value = message;
+        temporary.setAttribute("readonly", "");
+        temporary.style.position = "fixed";
+        temporary.style.top = "-1000px";
+        temporary.style.left = "-1000px";
+        temporary.style.opacity = "0";
+        document.body.appendChild(temporary);
+        temporary.select();
+        temporary.setSelectionRange(0, temporary.value.length);
+
+        const copied = document.execCommand("copy");
+        document.body.removeChild(temporary);
+
+        if (copied) {
+          showNotice("Mensagem copiada automaticamente.");
+          return;
+        }
+      } catch (fallbackError) {
+        console.error(fallbackError);
+      }
+
+      showNotice("O navegador bloqueou a cópia automática. Segure o texto e copie manualmente.", "error");
     }
 
     function copyDiagnosis(id) {
