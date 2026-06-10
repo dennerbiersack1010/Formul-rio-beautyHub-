@@ -1145,6 +1145,7 @@
 
           <div class="actions">
             <a class="btn btn-primary" href="${whatsappLink(item.whatsapp)}" target="_blank">WhatsApp</a>
+            <button class="btn btn-secondary" onclick="copyReadyMessage('${item.id}')">Mensagem pronta</button>
             <button class="btn btn-secondary" id="editBtn-${item.id}" onclick="toggleEdit('${item.id}')">Editar acompanhamento</button>
             <button class="btn btn-secondary" onclick="openDetail('${item.id}')">Ver diagnóstico</button>
             <button class="btn btn-secondary" onclick="copyDiagnosis('${item.id}')">Copiar</button>
@@ -1290,6 +1291,48 @@
       diagnostics = diagnostics.filter(entry => entry.id !== id);
       showNotice("Lead deletado com sucesso.");
       renderCards();
+    }
+
+    function getFirstName(value) {
+      const text = String(value || "").trim();
+      if (!text) return "";
+      return text.split(" ")[0];
+    }
+
+    function buildReadyMessage(item) {
+      const owner = getFirstName(item.owner_name) || "tudo bem";
+      const clinic = item.clinic_name || "sua clínica";
+      const plan = item.recommended_plan || "BeautyHub";
+      const reason = getHotReason(item);
+      const score = getScore(item);
+      const loss = getNormalized(item, "loss");
+
+      if (reason === "Quente por perda") {
+        return `Olá, ${owner}. Tudo bem?\n\nAnalisei as respostas da ${clinic} e vi um ponto importante: existe uma perda comercial alta acontecendo no atendimento e no acompanhamento dos contatos.\n\nO diagnóstico marcou perda ${loss}/100, então o principal problema não parece ser falta de interesse do público, mas oportunidade escapando por falta de organização, retorno e processo.\n\nPara esse cenário, o caminho mais indicado é começar pelo ${plan}: organizar os contatos, recuperar oportunidades paradas e criar um acompanhamento mais claro para não deixar lead esfriar.\n\nPosso te mostrar exatamente onde a clínica está perdendo oportunidade e como resolver isso de forma simples?`;
+      }
+
+      if (reason === "Quente por plano") {
+        return `Olá, ${owner}. Tudo bem?\n\nAnalisei as respostas da ${clinic} e o diagnóstico mostrou que a clínica já tem um nível de estrutura e potencial para uma solução mais completa.\n\nO plano indicado foi ${plan}, porque o cenário aponta espaço para melhorar performance comercial, acompanhamento dos leads e visão de crescimento.\n\nAqui não é só organizar contato. É criar uma operação mais inteligente para transformar interesse em agenda e oportunidade em venda.\n\nPosso te mostrar o diagnóstico e o caminho mais indicado para a ${clinic}?`;
+      }
+
+      if (reason === "Quente por score") {
+        return `Olá, ${owner}. Tudo bem?\n\nAnalisei as respostas da ${clinic} e o score geral ficou em ${score}/100, o que mostra um bom potencial comercial para evoluir o atendimento e a conversão.\n\nO plano indicado foi ${plan}, porque a clínica já demonstra sinais de oportunidade, mas ainda pode melhorar processo, acompanhamento e recuperação de contatos.\n\nA ideia é organizar o que hoje está solto para aumentar clareza, retorno e fechamento.\n\nPosso te mostrar o diagnóstico de forma objetiva?`;
+      }
+
+      return `Olá, ${owner}. Tudo bem?\n\nAnalisei as respostas da ${clinic} no diagnóstico BeautyHub.\n\nCom base nas respostas, o plano indicado foi ${plan}. A ideia é organizar melhor o acompanhamento dos contatos, entender onde existem oportunidades paradas e criar um processo mais claro para transformar interesse em atendimento.\n\nPosso te mostrar o diagnóstico e o próximo passo mais indicado para a clínica?`;
+    }
+
+    function copyReadyMessage(id) {
+      const item = diagnostics.find(entry => entry.id === id);
+      if (!item) return;
+
+      const message = buildReadyMessage(item);
+
+      navigator.clipboard.writeText(message).then(() => {
+        showNotice("Mensagem pronta copiada para WhatsApp.");
+      }).catch(() => {
+        showNotice("Não consegui copiar automaticamente. Abra o diagnóstico e copie manualmente.", "error");
+      });
     }
 
     function copyDiagnosis(id) {
