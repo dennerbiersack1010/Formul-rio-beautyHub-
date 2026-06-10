@@ -764,18 +764,25 @@
       return "controle";
     }
 
-    function isHotLead(item) {
+    function getHotReason(item) {
       const status = getLeadStatus(item);
       const openStatus = status === "Novo lead" || status === "Em análise" || status === "Chamado no WhatsApp";
+
+      if (!openStatus) return "";
+
       const score = getScore(item);
       const loss = getNormalized(item, "loss");
       const planType = getPlanType(item);
 
-      return openStatus && (
-        score >= 60 ||
-        loss >= 70 ||
-        planType === "performance"
-      );
+      if (planType === "performance") return "Quente por plano";
+      if (loss >= 70) return "Quente por perda";
+      if (score >= 60) return "Quente por score";
+
+      return "";
+    }
+
+    function isHotLead(item) {
+      return Boolean(getHotReason(item));
     }
 
     function getScore(item) {
@@ -918,8 +925,10 @@
           ? `<div class="note-preview">${escapeHtml(item.internal_notes)}</div>`
           : "";
 
-        const hotBadge = isHotLead(item)
-          ? `<span class="hot-badge">Oportunidade quente</span>`
+        const hotReason = getHotReason(item);
+
+        const hotBadge = hotReason
+          ? `<span class="hot-badge">${escapeHtml(hotReason)}</span>`
           : "";
 
         card.innerHTML = `
@@ -1110,7 +1119,7 @@
     function copyDiagnosis(id) {
       const item = diagnostics.find(entry => entry.id === id);
       if (!item) return;
-      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\nPrioridade: ${isHotLead(item) ? "Oportunidade quente" : "Normal"}\nPlano: ${item.recommended_plan || ""}\nScore: ${getScore(item)}/100\n\nDiagnóstico:\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
+      const text = `${item.clinic_name || "Clínica"}\nStatus: ${getLeadStatus(item)}\nPrioridade: ${getHotReason(item) || "Normal"}\nPlano: ${item.recommended_plan || ""}\nScore: ${getScore(item)}/100\n\nDiagnóstico:\n${item.diagnosis || ""}\n\nObservação interna: ${item.internal_notes || ""}`;
       navigator.clipboard.writeText(text).then(() => showNotice("Diagnóstico copiado."));
     }
 
