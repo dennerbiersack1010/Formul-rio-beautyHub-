@@ -907,6 +907,22 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    window.addEventListener("load", function() {
+      setTimeout(function() {
+        window.scrollTo(0, 0);
+      }, 0);
+    });
+
+    window.addEventListener("pageshow", function() {
+      setTimeout(function() {
+        window.scrollTo(0, 0);
+      }, 0);
+    });
+
     const SUPABASE_URL = "https://xxkkclvucpvzanggpfnn.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wZpXTa0aQF-PVeWZYIX3tg_3u49uPo2";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
