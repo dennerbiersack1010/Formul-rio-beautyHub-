@@ -543,6 +543,67 @@
       line-height: 1.45;
     }
 
+    .progress-shell {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      margin: 18px 0 0;
+      padding: 12px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(7,8,11,.78);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.24);
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(135deg, var(--accent), #ecfffa);
+      transition: width .25s ease;
+    }
+
+    .form-card {
+      scroll-margin-top: 110px;
+    }
+
+    .success strong {
+      display: block;
+      color: #ffffff;
+      font-size: 18px;
+      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+    }
+
+    .success span {
+      display: block;
+      color: #dffdf6;
+      opacity: .9;
+    }
+
     .footer-note {
       color: var(--muted2);
       text-align: center;
@@ -608,7 +669,7 @@
         </div>
       </div>
 
-      <div class="pill">Análise gratuita</div>
+      <div class="pill">Leva 3 minutos</div>
     </nav>
 
     <section class="hero">
@@ -616,7 +677,7 @@
         <div class="pill">Diagnóstico estratégico</div>
         <h1>Sua clínica está perdendo oportunidades sem perceber?</h1>
         <p>
-          Responda este diagnóstico rápido para mapear gargalos de atendimento, retorno,
+          Em poucos minutos, mapeie gargalos de atendimento, retorno,
           acompanhamento de leads e recuperação de oportunidades comerciais.
         </p>
 
@@ -658,6 +719,16 @@
         As respostas serão usadas para entender o momento comercial da clínica.
         O resultado não aparece aqui na tela; ele será analisado internamente.
       </p>
+    </div>
+
+    <div class="progress-shell">
+      <div class="progress-top">
+        <span id="progressText">0 de 9 perguntas respondidas</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
     </div>
 
     <form id="formulario">
@@ -866,7 +937,8 @@
         </div>
 
         <div class="success" id="successBox">
-          Diagnóstico enviado com sucesso. As respostas foram recebidas.
+          <strong>Diagnóstico enviado com sucesso.</strong>
+          <span>Recebemos suas respostas. Agora a BeautyHub vai analisar o cenário comercial da clínica e identificar o caminho mais indicado.</span>
         </div>
 
         <div class="error" id="errorBox">
@@ -1107,6 +1179,46 @@
       };
     }
 
+    const trackedQuestions = [
+      "q_volume",
+      "q_organization",
+      "q_followup",
+      "q_response",
+      "q_budget",
+      "q_inactive",
+      "q_pain",
+      "q_timing",
+      "q_investment"
+    ];
+
+    function updateProgress() {
+      const answered = trackedQuestions.filter((name) => getFormValue(name)).length;
+      const total = trackedQuestions.length;
+      const percent = Math.round((answered / total) * 100);
+
+      const progressText = document.getElementById("progressText");
+      const progressPercent = document.getElementById("progressPercent");
+      const progressFill = document.getElementById("progressFill");
+
+      if (progressText) {
+        progressText.textContent = `${answered} de ${total} perguntas respondidas`;
+      }
+
+      if (progressPercent) {
+        progressPercent.textContent = `${percent}%`;
+      }
+
+      if (progressFill) {
+        progressFill.style.width = `${percent}%`;
+      }
+    }
+
+    document.querySelectorAll('input[type="radio"]').forEach((input) => {
+      input.addEventListener("change", updateProgress);
+    });
+
+    updateProgress();
+
     document.getElementById("formulario").addEventListener("submit", async function(event) {
       event.preventDefault();
 
@@ -1154,6 +1266,7 @@
       successBox.scrollIntoView({ behavior: "smooth", block: "center" });
 
       this.reset();
+      updateProgress();
     });
   </script>
 </body>
